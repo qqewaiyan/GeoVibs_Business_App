@@ -1,0 +1,119 @@
+﻿<MudDialog>
+    <DialogContent>
+        <div class="d-flex align-center justify-space-between">
+            <div class="left-side">
+                @if (MovieId is null)
+                {
+                    <MudText Typo="Typo.h6">Add Movie</MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h6">Edit Movie</MudText>
+                }
+            </div>
+
+            <div class="right-side">
+                <MudIconButton Icon="@Icons.Material.Filled.Close"
+                               Color="Color.Default"
+                               Variant="Variant.Text"
+                               OnClick="Cancel" />
+            </div>
+        </div>
+
+        <MudForm @ref="_form">
+            <MudGrid Spacing="6">
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="Movie.Title"
+                                  Label="Name"
+                                  Required
+                                  MaxLength="10"
+                                  RequiredError="Name is required" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudNumericField T="int"
+                                     @bind-Value="Movie.DurationMinutes"
+                                     Label="Duration Minutes"
+                                     Required
+                                     Min="0" />
+                </MudItem>
+
+                <MudItem>
+                    <MudSwitch LabelPlacement="Placement.Top" Label="Inactive" @bind-Value="Movie.InActive"
+                               Color="Color.Error" />
+                </MudItem>
+
+
+
+            </MudGrid>
+        </MudForm>
+
+        <MudButton Variant="Variant.Filled" Class="core-bg-color float-right w-200px"
+                   OnClick="Save">
+            <MudText Class="text-white">Save</MudText>
+        </MudButton>
+
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public int? MovieId { get; set; }
+    private M.Movie Movie { get; set; } = new();
+
+    private MudForm _form = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await GetData();
+            await InvokeAsync(StateHasChanged);
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+
+    private async Task GetData()
+    {
+        try
+        {
+            if (MovieId is not null)
+            {
+                var param = new M.IdParam() { Id = MovieId ?? 0, VenueId = 4 };
+                Movie = await MovieAPI.GetByIdAsync(param) ?? new M.Movie();
+            }
+            else
+            {
+                Movie = new();
+                Movie.InActive = false;
+                Movie.VenueId = 4;
+            }
+        }
+        catch
+        {
+
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Save()
+    {
+        await _form.Validate();
+
+        if (!_form.IsValid)
+            return;
+
+        MudDialog.Close(DialogResult.Ok(Movie));
+    }
+}
+
+

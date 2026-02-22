@@ -1,0 +1,102 @@
+﻿@inherits LayoutComponentBase
+<style>
+
+    .mud-nav-item svg {
+        width: 20px !important;
+        height: 20px !important;
+    }
+
+    .nav_active {
+        background: var(--core-color) !important;
+    }
+
+        .nav_active svg {
+            color: white !important;
+        }
+
+        .nav_active .mud-nav-link-text {
+            color: white !important;
+        }
+
+</style>
+<MudLayout>
+    <MudAppBar Elevation="1" Class="core-bg-color" Dense="true">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <MudSpacer />
+        <MudIconButton ButtonType="ButtonType.Button" Icon="@Icons.Material.Outlined.Notifications" Color="Color.Inherit" />
+        <MudIconButton ButtonType="ButtonType.Button" Icon="@Icons.Material.Outlined.Settings" Color="Color.Inherit" />
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_open" ClipMode="_clipMode" Breakpoint="@_breakpoint" Elevation="1" OpenMiniOnHover="false" Variant="@DrawerVariant.Mini">
+        <MudNavMenu>
+            <MudNavLink Href="@AppRoutes.Dashboard" ActiveClass="nav_active"  Icon="@Icons.Material.Outlined.Dashboard">
+                Dashboard
+            </MudNavLink>
+            <MudNavLink Href="@AppRoutes.RoomMonitor" ActiveClass="nav_active" Icon="@Icons.Material.Outlined.Monitor">
+                Room Monitor
+            </MudNavLink>
+            @if (AppStates.CurrentUserLevel?.CanManageRoom == true)
+            {
+                <MudNavLink Href="@AppRoutes.RoomList" ActiveClass="nav_active" Icon="@Icons.Material.Outlined.Home">
+                    Room
+                </MudNavLink>
+            }
+
+            <MudNavLink Href="@AppRoutes.MovieList" ActiveClass="nav_active" Icon="@Icons.Material.Outlined.MovieCreation">
+                Movie
+            </MudNavLink>
+
+            <MudNavLink Href="@AppRoutes.SessionList" ActiveClass="nav_active" Icon="@Icons.Material.Outlined.Alarm">
+                Session
+            </MudNavLink>
+
+            <MudNavLink Href="@AppRoutes.UserAccounts" ActiveClass="nav_active" Icon="@Icons.Material.Outlined.PeopleAlt">
+                User Account
+            </MudNavLink>
+
+            <MudNavLink Href="@AppRoutes.UserPermission" ActiveClass="nav_active" Icon="@Icons.Material.Outlined.Security">
+                User Permission
+            </MudNavLink>
+        </MudNavMenu>
+
+    </MudDrawer>
+
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.False" Gutters="false">
+            <div style="padding : 15px">
+                @Body
+            </div>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+
+@* Required *@
+<MudThemeProvider IsDarkMode="false" />
+<MudPopoverProvider />
+
+@* Needed for dialogs *@
+<MudDialogProvider BackdropClick="false" CloseOnEscapeKey="true" NoHeader="true" />
+
+@* Needed for snackbars *@
+<MudSnackbarProvider />
+
+@code {
+    private bool _open = false;
+    private Breakpoint _breakpoint = Breakpoint.Lg;
+    private DrawerClipMode _clipMode = DrawerClipMode.Never;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            AppStates.CurrentUserLevel = new() { CanManageRoom = true, CanManageSession = true };
+            await InvokeAsync(StateHasChanged);
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private void ToggleDrawer()
+    {
+        _open = !_open;
+    }
+}

@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="_content/GeoVibs_Business.Shared/app.css" />
+    <link rel="stylesheet" href="GeoVibs_Business.Web.styles.css" />
+    <ImportMap />
+    <link rel="icon" type="image/png" href="_content/GeoVibs_Business.Shared/favicon.png" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" rel="stylesheet" />
+    <script src="_content/GeoVibs_Business.Shared/JsFunctions.js"></script>
+    <HeadOutlet @rendermode="new InteractiveWebAssemblyRenderMode(prerender: false)" />
+    <style>
+        body{
+            height : 100dvh;
+        }
+        .svgbox {
+            --blue: rgb(148, 66, 63);
+            stroke: var(--blue);
+            stroke-width: 5;
+            fill: none;
+            stroke-dasharray: 50, 14;
+            stroke-dashoffset: 192;
+            animation: dash_682 1.4s linear infinite;
+        }
+
+        @@keyframes dash_682 {
+            72.5% {
+                opacity: 1;
+            }
+
+            to {
+                stroke-dashoffset: 1;
+            }
+        }
+
+        .backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1999;
+        }
+
+        .app-loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2000; 
+            pointer-events: none; 
+        }
+            .app-loading.show-loading {
+                display: block;
+            }
+
+        .backdrop,
+        .app-loading {
+            display: none;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="backdrop" id="app-loading-backdrop"></div>
+    <div class="app-loading" id="app-loading">
+        <svg viewBox="0 0 187.3 93.7"  width="200px" class="svgbox">
+            <defs>
+                <linearGradient y2="0%" x2="100%" y1="0%" x1="0%" id="gradient">
+                    <stop stop-color="black" offset="0%"></stop>
+
+                    <stop stop-color="white" offset="100%"></stop>
+                </linearGradient>
+            </defs>
+
+            <path stroke="url(#gradient)" d="M93.9,46.4c9.3,9.5,13.8,17.9,23.5,17.9s17.5-7.8,17.5-17.5s-7.8-17.6-17.5-17.5c-9.7,0.1-13.3,7.2-22.1,17.1c-8.9,8.8-15.7,17.9-25.4,17.9s-17.5-7.8-17.5-17.5s7.8-17.5,17.5-17.5S86.2,38.6,93.9,46.4z"></path>
+        </svg>
+
+    </div>
+    <Routes @rendermode="new InteractiveWebAssemblyRenderMode(prerender: false)" />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script src="@Assets["_content/MudBlazor/MudBlazor.min.js"]"></script>
+</body>
+
+</html>

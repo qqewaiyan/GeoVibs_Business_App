@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="GeoVibs_Business/GeoVibs_Business.Shared/GeoVibs_Business.Shared.csproj" />
+  <Project Path="GeoVibs_Business/GeoVibs_Business.Web.Client/GeoVibs_Business.Web.Client.csproj" />
+  <Project Path="GeoVibs_Business/GeoVibs_Business.Web/GeoVibs_Business.Web.csproj" />
+  <Project Path="GeoVibs_Business/GeoVibs_Business/GeoVibs_Business.csproj">
+    <Deploy Solution="Debug|*" />
+  </Project>
+</Solution>

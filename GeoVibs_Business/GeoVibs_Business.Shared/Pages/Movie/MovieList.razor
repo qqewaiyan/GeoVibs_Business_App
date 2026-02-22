@@ -1,0 +1,142 @@
+﻿@page "/movies"
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="pt-3 mb-3" Justify="Justify.SpaceBetween">
+    <div>
+        <MudText Typo="Typo.h5" Class="page-title">
+            Movies
+        </MudText>
+    </div>
+
+    <MudButton Variant="Variant.Filled" OnClick="() => OpenDialog(null)"
+               StartIcon="@Icons.Material.Filled.Add"
+               Class="add-movie-btn py-2 px-4 core-bg-color text-white">
+        <MudText>Add Movie</MudText>
+    </MudButton>
+</MudStack>
+
+
+<style>
+    .page-title {
+        font-weight: 700; /* matches font-bold */
+    }
+
+    .add-movie-btn {
+        height: 40px;
+    }
+
+    .standard_Btn {
+        min-height: 40px;
+        min-width: 40px;
+    }
+</style>
+
+<MudTable Items="@Elements" Hover="true" Filter="new Func<M.Movie, bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudSpacer></MudSpacer>
+        <MudTextField @bind-Value="searchText" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Title *</MudTh>
+        <MudTh Style="text-align : right">Duration Minutes</MudTh>
+        <MudTh>Active</MudTh>
+        <MudTh Style="text-align : right">Action</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.Title</MudTd>
+        <MudTd Style="text-align : right" DataLabel="Duration Minutes">@context.DurationMinutes</MudTd>
+        <MudTd DataLabel="InActive">@(!context.InActive)</MudTd>
+        <MudTd Style="text-align : right">
+            <div class="flex item-center">
+                <button class="standard_Btn" @onclick="() => EditMovie(context)">
+                    <MudIcon Icon="@Icons.Material.Outlined.Edit"></MudIcon>
+                </button>
+                <button class="standard_Btn" @onclick="() => DeleteMovie(context)">
+                    <MudIcon Color="Color.Error" Icon="@Icons.Material.Outlined.Delete"></MudIcon>
+                </button>
+            </div>
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+
+@code {
+
+    private IEnumerable<M.Movie>? Elements = new List<M.Movie>();
+    private string searchText { get; set; } = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await Loading.ShowAsync();
+                M.VenueParam param = new() { VenueId = 4 };
+                Elements = await MovieAPI.GetAllAsync(param);
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+
+            }
+            finally
+            {
+                await Loading.HideAsync();
+            }
+        }
+    }
+
+
+
+    private bool FilterFunc1(M.Movie element) => FilterFunc(element, searchText);
+
+    private bool FilterFunc(M.Movie element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Title.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private async Task EditMovie(M.Movie room)
+    {
+        await OpenDialog(room.Id);
+    }
+
+
+    private async Task DeleteMovie(M.Movie room)
+    {
+        var param = new M.IdParam() { Id = room.Id, VenueId = room.VenueId };
+        await MovieAPI.DeleteAsync(param);
+        await RefreshData();
+    }
+    private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+    private async Task OpenDialog(int? roomId)
+    {
+        var parameters = new DialogParameters<MovieEntry>
+        {
+            { x => x.MovieId , roomId},
+        };
+        var dialog = await DialogService.ShowAsync<MovieEntry>(null, parameters);
+
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            var room = (M.Movie)result.Data!;
+            await MovieAPI.SaveAsync(room);
+            await RefreshData();
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        Elements = await MovieAPI.GetAllAsync(new M.VenueParam { VenueId = 4 });
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

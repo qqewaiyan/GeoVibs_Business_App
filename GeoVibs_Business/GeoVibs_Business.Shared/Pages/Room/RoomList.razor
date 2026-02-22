@@ -1,0 +1,146 @@
+﻿@page "/rooms"
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="pt-3 mb-3" Justify="Justify.SpaceBetween">
+    <div>
+        <MudText Typo="Typo.h5" Class="page-title">
+            Rooms
+        </MudText>
+    </div>
+
+    <MudButton Variant="Variant.Filled" OnClick="() => OpenDialog(null)"
+               StartIcon="@Icons.Material.Filled.Add" 
+               Class="add-movie-btn py-2 px-4 core-bg-color text-white">
+        <MudText>Add Room</MudText>
+    </MudButton>
+</MudStack>
+
+
+<style>
+        .page-title {
+        font-weight: 700; /* matches font-bold */
+    }
+
+    .add-movie-btn {
+        height: 40px;          
+    }
+
+    .standard_Btn{
+        min-height : 40px;
+        min-width : 40px;
+    }
+</style>
+
+<MudTable  Items="@Elements" Hover="true" Filter="new Func<M.Room, bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudSpacer></MudSpacer>
+        <MudTextField @bind-Value="searchText" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Name *</MudTh>
+        <MudTh>Feature *</MudTh>
+        <MudTh Style="text-align : right">Hourly Rate</MudTh>
+        <MudTh>Active</MudTh>
+        <MudTh>Created At</MudTh>
+        <MudTh Style="text-align : right">Action</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Feature">@context.Feature</MudTd>
+        <MudTd Style="text-align : right" DataLabel="BaseHourlyRate">@context.BaseHourlyRate</MudTd>
+        <MudTd DataLabel="InActive">@(!context.InActive)</MudTd>
+        <MudTd DataLabel="Created At">@context.CreatedAt</MudTd>
+        <MudTd Style="text-align : right">
+            <div class="flex item-center">
+                <button class="standard_Btn" @onclick="() => EditRoom(context)">
+                    <MudIcon  Icon="@Icons.Material.Outlined.Edit"></MudIcon>
+                </button>
+                <button class="standard_Btn" @onclick="() => DeleteRoom(context)">
+                    <MudIcon Color="Color.Error"  Icon="@Icons.Material.Outlined.Delete"></MudIcon>
+                </button>
+            </div>
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+
+@code {
+
+    private IEnumerable<M.Room>? Elements = new List<M.Room>();
+    private string searchText { get; set; } = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender)
+        {
+            try
+            {
+                await Loading.ShowAsync();
+                M.VenueParam param = new() { VenueId = 4 };
+                Elements = await RoomAPI.GetAllAsync(param);
+                await InvokeAsync(StateHasChanged);
+            }
+            catch(Exception ex)
+            {
+
+            }
+            finally
+            {
+                await Loading.HideAsync();
+            }
+        }
+    }
+
+
+
+    private bool FilterFunc1(M.Room element) => FilterFunc(element, searchText);
+
+    private bool FilterFunc(M.Room element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase) 
+         || element.Feature.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private async Task EditRoom(M.Room room)
+    {
+        await OpenDialog(room.Id);
+    }
+
+
+    private async Task DeleteRoom(M.Room room)
+    {
+        var param = new M.IdParam() { Id = room.Id, VenueId = room.VenueId };
+        await RoomAPI.DeleteAsync(param);
+        await RefreshData();
+    }
+    private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+    private async Task OpenDialog(int? roomId)
+    {
+        var parameters = new DialogParameters<RoomEntry>
+        {
+            { x => x.RoomId , roomId},
+        };
+        var dialog = await DialogService.ShowAsync<RoomEntry>(null, parameters);
+
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            var room = (M.Room)result.Data!;
+            await RoomAPI.SaveAsync(room);
+            await RefreshData();
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        Elements = await RoomAPI.GetAllAsync(new M.VenueParam { VenueId = 4 });
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

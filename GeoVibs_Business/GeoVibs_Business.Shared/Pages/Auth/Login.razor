@@ -1,0 +1,189 @@
+﻿@page "/login"
+@layout NoAuthLayout
+@* <div class="min-h-screen bg-gray-50 flex flex-col">
+    <div class="flex justify-between items-center p-6 lg:px-8">
+        <div class="flex items-center">
+            <h1 class="text-xl font-semibold text-gray-900 hidden sm:block">GeoVibs</h1>
+        </div>
+        <div class="hidden sm:flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+            <button @onclick="()=> SelectRole(CustomModel.Role.User)" class="flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all duration-100 cursor-pointer @(selectedRole == CustomModel.Role.User ? "bg-gray-900 text-white shadow-sm" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50")">
+                <LoginUserIcon Width="20" Height="20"></LoginUserIcon>
+                <span class="ml-1">User</span>
+            </button>
+            <button @onclick="()=> SelectRole(CustomModel.Role.Business)" class="flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all duration-100 cursor-pointer @(selectedRole == CustomModel.Role.Business ? "bg-gray-900 text-white shadow-sm" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50")">
+                <LoginBusinessIcon Width="20" Height="20"></LoginBusinessIcon>
+                <span class="ml-1">Business</span>
+            </button>
+        </div>
+    </div>
+    <div class="flex-1 flex items-center justify-center px-6 py-12">
+        <div class="w-full max-w-sm">
+
+            <!-- Mobile-only header -->
+            <div class="text-center mb-8 sm:hidden">
+                <h1 class="text-2xl font-semibold text-gray-900">Spotpick</h1>
+            </div>
+
+            <!-- Mobile-only user/business toggle -->
+            <div class="flex sm:hidden bg-white rounded-lg p-1 shadow-sm border border-gray-200 mb-8">
+                <button @onclick="() => SelectRole(CustomModel.Role.User)" class="flex-1 flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all   duration-200   cursor-pointer @(selectedRole == CustomModel.Role.User ? "bg-gray-900 text-white shadow-sm" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50")">
+                    <LoginUserIcon Width="20" Height="20"></LoginUserIcon>
+                    <span class="ml-2">User</span>
+                </button>
+                <button @onclick="() => SelectRole(CustomModel.Role.Business)" class="flex-1 flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium transition-all duration-200 cursor-pointer @(selectedRole == CustomModel.Role.Business ? "bg-gray-900 text-white shadow-sm" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50")">
+                    <LoginBusinessIcon Width="20" Height="20"></LoginBusinessIcon>
+                    <span class="ml-2">Business</span>
+                </button>
+            </div>
+
+            <!-- Login/Signup tabs -->
+            <div class="flex justify-center mb-8">
+                <div class="flex space-x-1">
+                    <button @onclick="() => SelectTab(CustomModel.SignUpPage.Login)" class="px-4 py-2 text-sm font-medium rounded-md transition-all duration-100 cursor-pointer @(selectedTab == CustomModel.SignUpPage.Login ? "bg-white text-gray-900 shadow-sm border border-gray-200" : "text-gray-600 hover:text-gray-900 hover:bg-white/50" )">
+                        Log in
+                    </button>
+                    <button @onclick="() => SelectTab(CustomModel.SignUpPage.Register)" class="px-4 py-2 text-sm font-medium rounded-md transition-all duration-100 cursor-pointer @(selectedTab == CustomModel.SignUpPage.Register ? "bg-white text-gray-900 shadow-sm border border-gray-200" : "text-gray-600 hover:text-gray-900 hover:bg-white/50" )">
+                        Sign up
+                    </button>
+                </div>
+            </div>
+
+            <!-- Login form container -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                <div class="space-y-6">
+
+    <!-- Form header -->
+    <div class="text-center">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-2">Welcome back</h2>
+        <p class="text-gray-600">
+            @if (SelectedRole == CustomModel.Role.User)
+            {
+                <text>Sign in to your account</text>
+            }
+            else
+            {
+                <text>
+                    Sign in to your business account
+                </text>
+            }
+
+
+        </p>
+    </div>
+
+    <!-- Login form -->
+    <div class="space-y-4">
+        <!-- Email field -->
+        <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                @if (SelectedRole == CustomModel.Role.User)
+                {
+                    <text>Email address</text>
+                }
+                else
+                {
+                    <text>Business email</text>
+                }
+            </label>
+            <input type="email"
+            id="email" autocomplete="off"
+            class="w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all duration-200"
+            placeholder="@(SelectedRole == CustomModel.Role.User ? "name@example.com" : "business@example.com")"
+            @bind="@LoginDTO.Email">
+            @if(!string.IsNullOrWhiteSpace(errMsg["errEmail"]))
+            {
+                <label class="text-sm text-red-700">@errMsg["errEmail"]</label>
+            }
+        </div>
+
+        <!-- Password field -->
+        <div>
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+            <div class="relative">
+                <input type="@(TogglePwdIcon ? "text" : "password")"
+                id="password" autocomplete="off"
+                class="w-full px-3 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all duration-200 pr-10"
+                placeholder="Enter your password"
+                @bind="@LoginDTO.Password">
+                <button @onclick="TogglePasswordEyeIcon" type="button" class="cursor-pointer absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                    @if (TogglePwdIcon)
+                    {
+                        <EyeCloseIcon Width="20" Height="20"></EyeCloseIcon>
+                    }
+                    else
+                    {
+                        <EyeIcon Width="20" Height="20"></EyeIcon>
+                    }
+                </button>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(errMsg["errPassword"]))
+            {
+                <label class="text-sm text-red-700">@errMsg["errPassword"]</label>
+            }
+        </div>
+
+        <!-- Remember me & Forgot password -->
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <input id="remember-me" name="remember-me" type="checkbox" class="cursor-pointer h-4 w-4 text-gray-900 focus:ring-gray-900 border-gray-300 rounded">
+                <label for="remember-me" class="ml-2 block cursor-pointer text-sm text-gray-700">Remember me</label>
+            </div>
+            <a href="#" class="text-sm text-gray-900 hover:text-gray-700 underline">Forgot password?</a>
+        </div>
+
+        <!-- Submit button -->
+        <button @onclick="LoginAsync" type="submit" class="w-full flex justify-center cursor-pointer py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all duration-200">
+            Sign in
+        </button>
+    </div>
+
+    <!-- Divider -->
+    <div class="relative">
+        <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-300"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+            <span class="px-2 bg-white text-gray-500">Or continue with</span>
+        </div>
+    </div>
+
+    <!-- Google sign-in button -->
+    <button class="w-full flex cursor-pointer justify-center items-center py-3 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all duration-200">
+        <GoogleIcon Width="20" Height="20"></GoogleIcon>
+        Continue with Google
+    </button>
+
+    <!-- Sign up prompt -->
+    <p class="text-center text-sm text-gray-600">
+        Don't have an account?
+        <button @onclick="() => OnClickSignUp.InvokeAsync()" class="text-gray-900 hover:text-gray-700 underline font-medium cursor-pointer">Sign up</button>
+    </p>
+    @if (SelectedRole == CustomModel.Role.Business)
+    {
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+            <p class="text-sm text-blue-800">
+                <strong>New to Spotpick?</strong> Join thousands of businesses already growing with us.
+            </p>
+        </div>
+    }
+
+</div>
+            </div>
+        </div>
+    </div>
+    <div class="text-center py-6 px-6 sticky bottom-0 bg-white border-t-[1px] border-gray-300">
+        <p class="text-sm text-gray-500">
+            @if (selectedRole == CustomModel.Role.User)
+            {
+                <text>Discover amazing spots near you</text>
+            }
+            else
+            {
+                <text>Grow your business with Spotpick</text>
+            }
+        </p>
+    </div>
+</div> *@
+@code {
+
+}

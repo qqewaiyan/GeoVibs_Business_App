@@ -34,13 +34,9 @@
             <MudNavLink Href="@AppRoutes.RoomMonitor" ActiveClass="nav_active" Icon="@Icons.Material.Outlined.Monitor">
                 Room Monitor
             </MudNavLink>
-            @if (AppStates.CurrentUserLevel?.CanManageRoom == true)
-            {
-                <MudNavLink Href="@AppRoutes.RoomList" ActiveClass="nav_active" Icon="@Icons.Material.Outlined.Home">
-                    Room
-                </MudNavLink>
-            }
-
+            <MudNavLink Href="@AppRoutes.RoomList" ActiveClass="nav_active" Icon="@Icons.Material.Outlined.Home">
+                Room
+            </MudNavLink>
             <MudNavLink Href="@AppRoutes.MovieList" ActiveClass="nav_active" Icon="@Icons.Material.Outlined.MovieCreation">
                 Movie
             </MudNavLink>
@@ -85,11 +81,17 @@
     private Breakpoint _breakpoint = Breakpoint.Lg;
     private DrawerClipMode _clipMode = DrawerClipMode.Never;
 
+    protected override void OnInitialized()
+    {
+        AppStates.CurrentVenue = new M.Venue() { Id = 4 };
+        base.OnInitialized();
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            AppStates.CurrentUserLevel = new() { CanManageRoom = true, CanManageSession = true };
+            
             await InvokeAsync(StateHasChanged);
         }
         await base.OnAfterRenderAsync(firstRender);

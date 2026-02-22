@@ -77,8 +77,7 @@
             try
             {
                 await Loading.ShowAsync();
-                M.VenueParam param = new() { VenueId = 4 };
-                Elements = await RoomAPI.GetAllAsync(param);
+                await RefreshData();
                 await InvokeAsync(StateHasChanged);
             }
             catch(Exception ex)
@@ -139,7 +138,8 @@
 
     private async Task RefreshData()
     {
-        Elements = await RoomAPI.GetAllAsync(new M.VenueParam { VenueId = 4 });
+        var param = new M.VenueParam() { VenueId = AppStates.CurrentVenue.Id };
+        Elements = await RoomAPI.GetAllAsync(param);
         await InvokeAsync(StateHasChanged);
     }
 

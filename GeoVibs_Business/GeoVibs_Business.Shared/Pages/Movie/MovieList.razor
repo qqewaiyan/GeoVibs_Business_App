@@ -74,7 +74,7 @@
             try
             {
                 await Loading.ShowAsync();
-                M.VenueParam param = new() { VenueId = 4 };
+                var param = new M.VenueParam() { VenueId = AppStates.CurrentVenue.Id };
                 Elements = await MovieAPI.GetAllAsync(param);
                 await InvokeAsync(StateHasChanged);
             }

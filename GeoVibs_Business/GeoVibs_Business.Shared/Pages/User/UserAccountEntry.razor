@@ -1,0 +1,167 @@
+﻿<MudDialog>
+    <DialogContent>
+        <div class="d-flex align-center justify-space-between">
+            <div class="left-side">
+                @if (UserId is null)
+                {
+                    <MudText Typo="Typo.h6">Add User</MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.h6">Edit User</MudText>
+                }
+            </div>
+
+            <div class="right-side">
+                <MudIconButton Icon="@Icons.Material.Filled.Close"
+                               Color="Color.Default"
+                               Variant="Variant.Text"
+                               OnClick="Cancel" />
+            </div>
+        </div>
+
+        <MudForm @ref="_form">
+            <MudGrid Spacing="6">
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="User.Name"
+                                  Label="Name"
+                                  Required
+                                  MaxLength="10"
+                                  RequiredError="Name is required" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="User.Email"
+                                  Label="Email"
+                                  Required
+                                  MaxLength="10"
+                                  RequiredError="Email is required" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="User.Phone"
+                                  Label="Phone"
+                                  Required
+                                  MaxLength="10"
+                                  RequiredError="Phone is required" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelect @bind-Value="@SelectedUserLevel"
+                               Variant="Variant.Text"
+                               Required="true"
+                               Label="User Level"
+                               Clearable="true"
+                               RequiredError="User Level is required"
+                               Modal="false">
+                        @foreach (var state in UserLevelList)
+                        {
+                            <MudSelectItem Value="state">@state.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                </MudItem>
+
+                <MudItem>
+                    <MudSwitch LabelPlacement="Placement.Top" Label="Inactive" @bind-Value="User.InActive"
+                               Color="Color.Error" />
+                </MudItem>
+
+
+
+            </MudGrid>
+        </MudForm>
+
+        <MudButton Variant="Variant.Filled" Class="core-bg-color float-right w-200px"
+                   OnClick="Save">
+            <MudText Class="text-white">Save</MudText>
+        </MudButton>
+
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public int? UserId { get; set; }
+    private M.User User { get; set; } = new();
+    private List<M.UserLevel> UserLevelList { get; set; } = new();
+    private M.UserLevel? SelectedUserLevel { get; set; }
+
+    private MudForm _form = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await GetUserLevelList();
+            await InvokeAsync(StateHasChanged);
+            await Task.Yield();
+            await GetData();
+            SelectedUserLevel = GetUserLevel();
+            await InvokeAsync(StateHasChanged);
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private M.UserLevel? GetUserLevel()
+    {
+       return UserLevelList.FirstOrDefault(x => x.Id == User.UserLevelId);
+    }
+
+
+    private async Task GetData()
+    {
+        try
+        {
+            if (UserId is not null)
+            {
+                var param = new M.IdParam() { Id = UserId ?? 0, VenueId = 4 };
+                User = await UserAPI.GetByIdAsync(param) ?? new M.User();
+            }
+            else
+            {
+                User = new();
+                User.InActive = false;
+                User.VenueId = 4;
+            }
+        }
+        catch
+        {
+
+        }
+    }
+
+    private async Task GetUserLevelList()
+    {
+        try
+        {
+            var param = new M.VenueParam() { VenueId = AppStates.CurrentVenue.Id };
+            UserLevelList = await UserLevelAPI.GetAllAsync(param) ?? [];
+        }
+        catch
+        {
+
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Save()
+    {
+        await _form.Validate();
+
+        if (!_form.IsValid)
+            return;
+
+        User.UserLevelId = SelectedUserLevel?.Id ?? 0;
+        MudDialog.Close(DialogResult.Ok(User));
+    }
+}
+
+

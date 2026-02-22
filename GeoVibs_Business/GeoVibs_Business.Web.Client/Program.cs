@@ -17,6 +17,8 @@ builder.Services.AddScoped<AppNavigationService>();
 builder.Services.AddScoped<CurrentAppStates>();
 builder.Services.AddScoped<RoomAPI>();
 builder.Services.AddScoped<MovieAPI>();
+builder.Services.AddScoped<UserAPI>();
+builder.Services.AddScoped<UserLevelAPI>();
 builder.Services.AddScoped<ILoadingService, LoadingService>();
 builder.Services.AddMudServices();
 await builder.Build().RunAsync();

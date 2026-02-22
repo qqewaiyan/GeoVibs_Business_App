@@ -1,5 +1,168 @@
 ﻿@page "/useraccounts"
-<h3>UserAccountList</h3>
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="pt-3 mb-3" Justify="Justify.SpaceBetween">
+    <div>
+        <MudText Typo="Typo.h5" Class="page-title">
+            Users
+        </MudText>
+    </div>
+
+    <MudButton Variant="Variant.Filled" OnClick="() => OpenDialog(null)"
+               StartIcon="@Icons.Material.Filled.Add"
+               Class="add-movie-btn py-2 px-4 core-bg-color text-white">
+        <MudText>Add User</MudText>
+    </MudButton>
+</MudStack>
+
+
+<style>
+    .page-title {
+        font-weight: 700; /* matches font-bold */
+    }
+
+    .add-movie-btn {
+        height: 40px;
+    }
+
+    .standard_Btn {
+        min-height: 40px;
+        min-width: 40px;
+    }
+</style>
+
+<MudTable Items="@Elements" Hover="true" Filter="new Func<M.User, bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudSpacer></MudSpacer>
+        <MudTextField @bind-Value="searchText" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Name *</MudTh>
+        <MudTh>Email *</MudTh>
+        <MudTh Style="text-align : right">Phone *</MudTh>
+        <MudTh>User Level</MudTh>
+        <MudTh>Active</MudTh>
+        <MudTh>Created At</MudTh>
+        <MudTh Style="text-align : right">Action</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Email">@context.Email</MudTd>
+        <MudTd Style="text-align : right" DataLabel="Phone">@context.Phone</MudTd>
+        <MudTd DataLabel="User Level">@GetUserLevel(context.UserLevelId)?.Name</MudTd>
+        <MudTd DataLabel="InActive">@(!context.InActive)</MudTd>
+        <MudTd DataLabel="Created At">@context.CreatedAt</MudTd>
+        <MudTd Style="text-align : right">
+            <div class="flex item-center">
+                <button class="standard_Btn" @onclick="() => EditUser(context)">
+                    <MudIcon Icon="@Icons.Material.Outlined.Edit"></MudIcon>
+                </button>
+                <button class="standard_Btn" @onclick="() => DeleteUser(context)">
+                    <MudIcon Color="Color.Error" Icon="@Icons.Material.Outlined.Delete"></MudIcon>
+                </button>
+            </div>
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
 
 @code {
+
+    private IEnumerable<M.User>? Elements = new List<M.User>();
+    private string searchText { get; set; } = string.Empty;
+    private List<M.UserLevel> UserLevelList { get; set; } = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await Loading.ShowAsync();
+                await Task.WhenAll(GetUserLevelList(), RefreshData());
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+
+            }
+            finally
+            {
+                await Loading.HideAsync();
+            }
+        }
+    }
+
+    private M.UserLevel? GetUserLevel(int ulid)
+    {
+        return UserLevelList.FirstOrDefault(x => x.Id == ulid);
+    }
+
+    private async Task GetUserLevelList()
+    {
+        try
+        {
+            var param = new M.VenueParam() { VenueId = AppStates.CurrentVenue.Id };
+            UserLevelList = await UserLevelAPI.GetAllAsync(param) ?? [];
+        }
+        catch
+        {
+
+        }
+    }
+
+
+
+    private bool FilterFunc1(M.User element) => FilterFunc(element, searchText);
+
+    private bool FilterFunc(M.User element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+        || element.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+         || element.Phone.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private async Task EditUser(M.User room)
+    {
+        await OpenDialog(room.Id);
+    }
+
+
+    private async Task DeleteUser(M.User room)
+    {
+        var param = new M.IdParam() { Id = room.Id, VenueId = room.VenueId };
+        await UserAPI.DeleteAsync(param);
+        await RefreshData();
+    }
+    private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+    private async Task OpenDialog(int? roomId)
+    {
+        var parameters = new DialogParameters<UserAccountEntry>
+        {
+            { x => x.UserId , roomId},
+        };
+        var dialog = await DialogService.ShowAsync<UserAccountEntry>(null, parameters);
+
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            var room = (M.User)result.Data!;
+            await UserAPI.SaveAsync(room);
+            await RefreshData();
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        M.VenueParam param = new() { VenueId = AppStates.CurrentVenue.Id };
+        Elements = await UserAPI.GetAllAsync(param);
+        await InvokeAsync(StateHasChanged);
+    }
+
 }

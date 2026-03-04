@@ -112,9 +112,9 @@
                 Room.VenueId = 4;
             }
         }
-        catch
+        catch(Exception ex)
         {
-            
+            await MessageDialogService.ShowError("Room.2121", ex.Message);
         }
     }
 

@@ -1,0 +1,116 @@
+﻿<MudDialog Class="modern-dialog">
+
+    <DialogContent>
+        <MudStack Spacing="3">
+
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                <div class="icon-wrapper @AccentClass">
+                    <MudIcon Icon="@Icon" Size="Size.Medium" />
+                </div>
+
+                <MudText Typo="Typo.h6" Class="title">
+                    @Title
+                </MudText>
+            </MudStack>
+
+            <MudText Typo="Typo.body2" Class="message">
+                @Message
+            </MudText>
+
+        </MudStack>
+    </DialogContent>
+
+    <DialogActions>
+        @if (IsConfirmation)
+        {
+            <MudButton Variant="Variant.Text"
+                       OnClick="Cancel">
+                Cancel
+            </MudButton>
+        }
+
+        <MudButton Variant="Variant.Filled"
+                   Class="@PrimaryButtonClass"
+                   OnClick="Confirm">
+            @ConfirmText
+        </MudButton>
+    </DialogActions>
+
+</MudDialog>
+<style>
+    .modern-dialog {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 28px;
+        border: 1px solid #f0f0f0;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+        min-width : 450px;
+    }
+
+        .modern-dialog .mud-dialog-content{
+            padding : 0 !important;
+            margin-bottom : 30px;
+        }
+
+    .icon-wrapper {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* ERROR STYLE */
+    .accent-error {
+        color: #dc2626;
+    }
+
+    .btn-error {
+        background: #dc2626 !important;
+        color: white;
+    }
+
+    /* CONFIRM STYLE */
+    .accent-confirm {
+        background: #fff7ed;
+        color: #ea580c;
+    }
+
+    .btn-confirm {
+        background: #ea580c;
+        color: white;
+    }
+
+    .title {
+        font-weight: 600;
+    }
+
+    .message {
+        color: #555;
+        line-height: 1.6;
+    }
+</style>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Message { get; set; } = string.Empty;
+    [Parameter] public string Icon { get; set; } = string.Empty;
+    [Parameter] public Color Color { get; set; }
+    [Parameter] public bool IsConfirmation { get; set; }
+    [Parameter] public string ConfirmText { get; set; } = "OK";
+    [Parameter] public string Mode { get; set; } = "error";
+
+    string AccentClass => Mode == "error"
+        ? "accent-error"
+        : "accent-confirm";
+
+    string PrimaryButtonClass => Mode == "error"
+        ? "btn-error"
+        : "btn-confirm";
+
+    void Confirm() => MudDialog.Close(DialogResult.Ok(true));
+    void Cancel() => MudDialog.Cancel();
+}

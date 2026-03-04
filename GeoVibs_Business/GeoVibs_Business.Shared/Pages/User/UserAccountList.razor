@@ -85,7 +85,7 @@
             }
             catch (Exception ex)
             {
-
+                await MessageDialogService.ShowError("User.5151", ex.Message);
             }
             finally
             {
@@ -106,9 +106,9 @@
             var param = new M.VenueParam() { VenueId = AppStates.CurrentVenue.Id };
             UserLevelList = await UserLevelAPI.GetAllAsync(param) ?? [];
         }
-        catch
+        catch(Exception ex)
         {
-
+            await MessageDialogService.ShowError("User.1525", ex.Message);
         }
     }
 
@@ -135,26 +135,41 @@
 
     private async Task DeleteUser(M.User room)
     {
-        var param = new M.IdParam() { Id = room.Id, VenueId = room.VenueId };
-        await UserAPI.DeleteAsync(param);
-        await RefreshData();
+        try
+        {
+            var param = new M.IdParam() { Id = room.Id, VenueId = room.VenueId };
+            await UserAPI.DeleteAsync(param);
+            await RefreshData();
+
+        }
+        catch(Exception ex)
+        {
+            await MessageDialogService.ShowError("User.51161", ex.Message);
+        }
     }
     private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
     private async Task OpenDialog(int? roomId)
     {
-        var parameters = new DialogParameters<UserAccountEntry>
+        try
+        {
+            var parameters = new DialogParameters<UserAccountEntry>
         {
             { x => x.UserId , roomId},
         };
-        var dialog = await DialogService.ShowAsync<UserAccountEntry>(null, parameters);
+            var dialog = await DialogService.ShowAsync<UserAccountEntry>(null, parameters);
 
-        var result = await dialog.Result;
+            var result = await dialog.Result;
 
-        if (result is not null && !result.Canceled)
+            if (result is not null && !result.Canceled)
+            {
+                var room = (M.User)result.Data!;
+                await UserAPI.SaveAsync(room);
+                await RefreshData();
+            }
+        }
+        catch(Exception ex)
         {
-            var room = (M.User)result.Data!;
-            await UserAPI.SaveAsync(room);
-            await RefreshData();
+            await MessageDialogService.ShowError("User.51161", ex.Message);
         }
     }
 

@@ -82,7 +82,7 @@
             }
             catch(Exception ex)
             {
-
+                await MessageDialogService.ShowError( "Room.15",ex.Message);
             }
             finally
             {
@@ -113,34 +113,67 @@
 
     private async Task DeleteRoom(M.Room room)
     {
-        var param = new M.IdParam() { Id = room.Id, VenueId = room.VenueId };
-        await RoomAPI.DeleteAsync(param);
-        await RefreshData();
+        try
+        {
+            await Loading.ShowAsync();
+            var param = new M.IdParam() { Id = room.Id, VenueId = room.VenueId };
+            await RoomAPI.DeleteAsync(param);
+            await RefreshData();
+        }
+        catch(Exception ex)
+        {
+            await MessageDialogService.ShowError( "Room.421", ex.Message);
+        }
+        finally
+        {
+            await Loading.HideAsync();
+        }
     }
     private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
     private async Task OpenDialog(int? roomId)
     {
-        var parameters = new DialogParameters<RoomEntry>
+        try
+        {
+            var parameters = new DialogParameters<RoomEntry>
         {
             { x => x.RoomId , roomId},
         };
-        var dialog = await DialogService.ShowAsync<RoomEntry>(null, parameters);
+            var dialog = await DialogService.ShowAsync<RoomEntry>(null, parameters);
 
-        var result = await dialog.Result;
+            var result = await dialog.Result;
 
-        if (result is not null && !result.Canceled)
+            if (result is not null && !result.Canceled)
+            {
+                await Loading.ShowAsync();
+                var room = (M.Room)result.Data!;
+                await RoomAPI.SaveAsync(room);
+                await RefreshData();
+                await Loading.HideAsync();
+            }
+        }
+        catch(Exception ex)
         {
-            var room = (M.Room)result.Data!;
-            await RoomAPI.SaveAsync(room);
-            await RefreshData();
+            await MessageDialogService.ShowError("Room.67", ex.Message);
+        }
+        finally
+        {
+            await Loading.HideAsync();
         }
     }
 
     private async Task RefreshData()
     {
-        var param = new M.VenueParam() { VenueId = AppStates.CurrentVenue.Id };
-        Elements = await RoomAPI.GetAllAsync(param);
-        await InvokeAsync(StateHasChanged);
+        try
+        {
+            var param = new M.VenueParam() { VenueId = AppStates.CurrentVenue.Id };
+            Elements = await RoomAPI.GetAllAsync(param);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch(Exception ex)
+        {
+            await MessageDialogService.ShowError( "Room.2121", ex.Message);
+        }
+        
     }
 
 }

@@ -94,9 +94,9 @@
                 Movie.VenueId = 4;
             }
         }
-        catch
+        catch(Exception ex)
         {
-
+            await MessageDialogService.ShowError("MovieEntry.21211", ex.Message);
         }
     }
 

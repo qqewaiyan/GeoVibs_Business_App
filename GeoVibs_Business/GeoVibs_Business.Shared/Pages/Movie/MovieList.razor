@@ -80,7 +80,7 @@
             }
             catch (Exception ex)
             {
-
+                await MessageDialogService.ShowError("Movie.5151", ex.Message);
             }
             finally
             {
@@ -110,26 +110,51 @@
 
     private async Task DeleteMovie(M.Movie room)
     {
-        var param = new M.IdParam() { Id = room.Id, VenueId = room.VenueId };
-        await MovieAPI.DeleteAsync(param);
-        await RefreshData();
+        try
+        {
+
+            await Loading.ShowAsync();
+            var param = new M.IdParam() { Id = room.Id, VenueId = room.VenueId };
+            await MovieAPI.DeleteAsync(param);
+            await RefreshData();
+        }
+        catch(Exception ex)
+        {
+            await MessageDialogService.ShowError("Movie.1415", ex.Message);
+        }
+        finally
+        {
+            await Loading.HideAsync();
+        }
     }
     private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
     private async Task OpenDialog(int? roomId)
     {
-        var parameters = new DialogParameters<MovieEntry>
+        try
         {
-            { x => x.MovieId , roomId},
-        };
-        var dialog = await DialogService.ShowAsync<MovieEntry>(null, parameters);
+            var parameters = new DialogParameters<MovieEntry>
+            {
+                { x => x.MovieId , roomId},
+            };
+            var dialog = await DialogService.ShowAsync<MovieEntry>(null, parameters);
 
-        var result = await dialog.Result;
+            var result = await dialog.Result;
 
-        if (result is not null && !result.Canceled)
+            if (result is not null && !result.Canceled)
+            {
+                await Loading.ShowAsync();
+                var room = (M.Movie)result.Data!;
+                await MovieAPI.SaveAsync(room);
+                await RefreshData();
+            }
+        }
+        catch(Exception ex)
         {
-            var room = (M.Movie)result.Data!;
-            await MovieAPI.SaveAsync(room);
-            await RefreshData();
+            await MessageDialogService.ShowError("Movie.2121", ex.Message);
+        }
+        finally
+        {
+            await Loading.HideAsync();
         }
     }
 

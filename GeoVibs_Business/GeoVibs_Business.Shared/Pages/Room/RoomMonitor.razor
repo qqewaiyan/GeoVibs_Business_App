@@ -1,6 +1,100 @@
 ﻿@page "/roommonitor"
-<h3>RoomMonitor</h3>
+
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager Nav
+
+<MudStack Spacing="2">
+    <MudText Typo="Typo.h4" Class="font-weight-bold">Room Monitor</MudText>
+
+    <MudStack Spacing="1">
+        @foreach (var room in Rooms)
+        {
+            <MudPaper Class="pa-2 mb-2" Elevation="1">
+                <MudText>
+                    @room.RoomName - @room.Status
+                    (@room.UpdatedAt.ToLocalTime().ToString("hh:mm:ss tt"))
+                </MudText>
+            </MudPaper>
+        }
+    </MudStack>
+</MudStack>
 
 @code {
+    private HubConnection? hubConnection;
+    private List<RoomStatusDto> Rooms = new();
+    private PeriodicTimer? timer;
 
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Start SignalR
+            hubConnection = new HubConnectionBuilder()
+                .WithUrl(Nav.ToAbsoluteUri("/roomHub"))
+                .WithAutomaticReconnect()
+                .Build();
+
+            hubConnection.On<RoomStatusDto>("ReceiveRoomUpdate", (room) =>
+            {
+                var existing = Rooms.FirstOrDefault(r => r.RoomName == room.RoomName);
+                if (existing != null)
+                {
+                    existing.Status = room.Status;
+                    existing.UpdatedAt = room.UpdatedAt;
+                }
+                else
+                {
+                    Rooms.Add(room);
+                }
+
+                InvokeAsync(StateHasChanged);
+            });
+
+            await hubConnection.StartAsync();
+
+            // Start a real-time timer to refresh UI every second
+            timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+            _ = UpdateTimerAsync();
+        }
+        catch(Exception ex)
+        {
+            await MessageDialogService.ShowError("RoomMonitor.2121", ex.Message);
+        }
+    }
+
+    private async Task UpdateTimerAsync()
+    {
+        if (timer is null) return;
+
+        try
+        {
+            while (await timer.WaitForNextTickAsync())
+            {
+                // triggers a UI refresh every second
+                InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Timer was canceled
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        timer?.Dispose();
+
+        if (hubConnection is not null)
+        {
+            await hubConnection.StopAsync();
+            await hubConnection.DisposeAsync();
+        }
+    }
+
+    public class RoomStatusDto
+    {
+        public string RoomName { get; set; } = default!;
+        public string Status { get; set; } = default!;
+        public DateTime UpdatedAt { get; set; }
+    }
 }

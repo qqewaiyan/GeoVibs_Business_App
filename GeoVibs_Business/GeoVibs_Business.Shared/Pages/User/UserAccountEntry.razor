@@ -96,12 +96,19 @@
     {
         if (firstRender)
         {
-            await GetUserLevelList();
-            await InvokeAsync(StateHasChanged);
-            await Task.Yield();
-            await GetData();
-            SelectedUserLevel = GetUserLevel();
-            await InvokeAsync(StateHasChanged);
+            try
+            {
+                await GetUserLevelList();
+                await InvokeAsync(StateHasChanged);
+                await Task.Yield();
+                await GetData();
+                SelectedUserLevel = GetUserLevel();
+                await InvokeAsync(StateHasChanged);
+            }
+            catch(Exception ex)
+            {
+                await MessageDialogService.ShowError("UserEntry.1161", ex.Message);
+            }
         }
         await base.OnAfterRenderAsync(firstRender);
     }
@@ -128,9 +135,9 @@
                 User.VenueId = 4;
             }
         }
-        catch
+        catch(Exception ex)
         {
-
+            await MessageDialogService.ShowError("UserEntry.51161", ex.Message);
         }
     }
 
@@ -141,9 +148,10 @@
             var param = new M.VenueParam() { VenueId = AppStates.CurrentVenue.Id };
             UserLevelList = await UserLevelAPI.GetAllAsync(param) ?? [];
         }
-        catch
+        catch(Exception ex)
         {
 
+            await MessageDialogService.ShowError("User.1661", ex.Message);
         }
     }
 

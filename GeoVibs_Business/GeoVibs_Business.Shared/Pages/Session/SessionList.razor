@@ -1,6 +1,22 @@
 ﻿@page "/sessions"
-<h3>RoomList</h3>
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="pt-3 mb-3" Justify="Justify.SpaceBetween">
+    <div>
+        <MudText Typo="Typo.h5" Class="page-title">
+            Sessions
+        </MudText>
+    </div>
+
+    <MudButton Variant="Variant.Filled" OnClick="GoToSessionEntry"
+               StartIcon="@Icons.Material.Filled.Add"
+               Class="add-movie-btn py-2 px-4 core-bg-color text-white">
+        <MudText>Create New Session</MudText>
+    </MudButton>
+</MudStack>
 
 @code {
 
+    private void GoToSessionEntry()
+    {
+        Nav.GoToRoute("session/entry");
+    }
 }

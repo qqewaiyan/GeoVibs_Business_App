@@ -5,5 +5,6 @@
         if (!loadingElement) return;
 
         loadingElement.classList.toggle("show-loading", loading);
+        backdropElement.classList.toggle("show-loading", loading);
     }
 };

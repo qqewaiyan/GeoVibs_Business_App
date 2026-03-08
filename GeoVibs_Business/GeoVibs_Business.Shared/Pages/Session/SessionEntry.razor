@@ -1,0 +1,346 @@
+﻿@page "/session/entry"
+<MudGrid Spacing="3" Class="max-w-7xl">
+
+    <!-- LEFT CARD -->
+    <MudItem xs="12" lg="6">
+        <MudCard Elevation="3">
+
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Class="mr-2" />
+                        Session Information
+                    </MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+
+            <MudCardContent>
+
+                <MudStack Spacing="3">
+
+                    @if (RoomList is not null)
+                    {
+                        <!-- ROOM -->
+                        <MudSelect T="M.Room" Clearable="true" Required="true" ValueChanged="OnChangeSelectedRoom" Adornment="Adornment.Start" FullWidth="true" AdornmentIcon="@Icons.Material.Filled.Home"
+                                   FitContent="true" Variant="Variant.Outlined" ShrinkLabel="true" Label="Select a room">
+                            @foreach (var room in RoomList)
+                            {
+                                <MudSelectItem Value="room">
+                                    <div class="d-flex gap-2 align-center">
+                                        <span>@room.Name</span> <span style="font-size : 13px; color : #939393;margin-top: 2px">(@room.BaseHourlyRate MMK)</span>
+                                    </div>
+                                 </MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+
+                    @if (MovieList is not null)
+                    {
+                        <!-- MOVIE -->
+                        <MudSelect T="M.Movie" ValueChanged="OnChangeSelectedMovie" FullWidth="true" FitContent="true"
+                                   Adornment="Adornment.Start" Variant="Variant.Outlined"
+                                   AdornmentIcon="@Icons.Material.Filled.Movie" Label="Select a movie">
+                            @foreach (var movie in MovieList)
+                            {
+                                <MudSelectItem Value="movie">
+                                    <div class="d-flex gap-2 align-center">
+                                        <span>@movie.Title</span> <span style="font-size : 13px; color : #939393; margin-top: 2px">(@movie.DurationMinutes min)</span>
+                                    </div>
+                                          </MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+                    <MudStack Direction="Row" Spacing="2">
+                        <!-- DATE -->
+                        <MudDatePicker Label="Date"
+                                       Variant="Variant.Outlined"
+                                       Date="@Session.CreatedAt.Date"
+                                       DateChanged="OnChangeDate"
+                                       Adornment="Adornment.Start"
+                                       AdornmentIcon="@Icons.Material.Filled.CalendarToday" />
+
+                        <!-- TIME -->
+                        <MudTimePicker Label="Time"
+                                       AmPm="true" TimeFormat="h:mm tt"
+                                       Variant="Variant.Outlined"
+                                       Time="@Session.CreatedAt.TimeOfDay"
+                                       TimeChanged="OnChangeTime"
+                                       Adornment="Adornment.Start"
+                                       AdornmentIcon="@Icons.Material.Filled.AccessTime" />
+                    </MudStack>
+                    <!-- EXTRA CHARGE -->
+                    <MudNumericField Label="Extra Charge"
+                                     Variant="Variant.Outlined"
+                                     Adornment="Adornment.Start"
+                                     AdornmentText="$"
+                                     Min="0" HideSpinButtons="true" Step="1000" />
+
+                    <!-- SESSION PREVIEW -->
+                    <MudPaper Class="pa-4 mt-4">
+
+                        <MudText Typo="Typo.subtitle2">
+                            Session Preview
+                        </MudText>
+
+                        <MudGrid Class="mt-2">
+
+                            <MudItem Class="pt-0" xs="6">
+                                <MudText Typo="Typo.caption">Duration</MudText>
+                                <MudText>
+                                    @if(SelectedMovie is not null)
+                                    {
+                                        @(SelectedMovie.DurationMinutes + " minutes")
+                                    }
+                                    else
+                                    {
+                                        @("---")
+                                    }
+                                </MudText>
+                            </MudItem>
+
+                            <MudItem Class="pt-0" xs="6">
+                                <MudText Typo="Typo.caption">Expected End</MudText>
+                                <MudText>@Session.ExpectedEndAt</MudText>
+                            </MudItem>
+
+                            <MudItem xs="12" Class="mt-2 pt-0">
+                                <MudDivider Class="mb-3" />
+                                <MudText Typo="Typo.caption" Class="mt-2">
+                                    Room Charge
+                                </MudText>
+
+                                <MudText Typo="Typo.h6" Color="Color.Primary">
+                                    @if(SelectedRoom is not null)
+                                    {
+                                        @Session.RoomCharge
+                                    }
+                                    else
+                                    {
+                                        @("--")
+                                    }
+                                </MudText>
+                            </MudItem>
+
+                        </MudGrid>
+
+                    </MudPaper>
+
+                </MudStack>
+
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+
+    <!-- RIGHT CARD -->
+    <MudItem xs="12" lg="6">
+        <MudCard Elevation="3">
+
+            <MudCardHeader>
+                <MudIcon Icon="@Icons.Material.Outlined.ShoppingCart" Class="mr-2" />
+                <MudText Typo="Typo.h6">
+                    Session Items
+                </MudText>
+            </MudCardHeader>
+
+            <MudCardContent>
+
+                <!-- QUICK ADD -->
+                <MudText Typo="Typo.subtitle2" Class="mb-2">
+                    Quick Add
+                </MudText>
+
+                <MudGrid Spacing="2">
+
+                    <MudItem xs="4">
+                        <MudButton Variant="Variant.Outlined" FullWidth="true">
+                            Popcorn<br />
+                            <MudChip T="string" Color="Color.Warning" Size="Size.Small">$8.99</MudChip>
+                        </MudButton>
+                    </MudItem>
+
+                    <MudItem xs="4">
+                        <MudButton Variant="Variant.Outlined" FullWidth="true">
+                            Coca-Cola<br />
+                            <MudChip T="string" Color="@Color.Info" Size="Size.Small">$4.99</MudChip>
+                        </MudButton>
+                    </MudItem>
+
+                    <MudItem xs="4">
+                        <MudButton Variant="Variant.Outlined" FullWidth="true">
+                            Nachos<br />
+                            <MudChip T="string" Color="Color.Error" Size="Size.Small">$12.99</MudChip>
+                        </MudButton>
+                    </MudItem>
+
+                </MudGrid>
+
+
+                <!-- ITEMS TABLE -->
+                <MudTable Items="@SessionDetails" Dense="true" Hover="true" Class="mt-4">
+
+                    <HeaderContent>
+                        <MudTh>Item</MudTh>
+                        <MudTh>Unit Price</MudTh>
+                        <MudTh>Qty</MudTh>
+                        <MudTh>Total</MudTh>
+                        <MudTh></MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate>
+
+                        <MudTd>@context.Name</MudTd>
+
+                        <MudTd>
+                            $@context.UnitPrice
+                        </MudTd>
+
+                        <MudTd>
+
+                            <MudIconButton Icon="@Icons.Material.Filled.Remove"
+                                           Size="Size.Small" />
+
+                            @context.Qty
+
+                            <MudIconButton Icon="@Icons.Material.Filled.Add"
+                                           Size="Size.Small" />
+
+                        </MudTd>
+
+                        <MudTd>
+                            $@(context.UnitPrice* context.Qty)
+                        </MudTd>
+
+                        <MudTd>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                           Color="Color.Error" />
+                        </MudTd>
+
+                    </RowTemplate>
+
+                </MudTable>
+
+                <!-- SUBTOTAL -->
+                <MudPaper Class="d-flex justify-space-between pa-3 mt-3">
+                    <MudText Typo="Typo.subtitle2">Items Subtotal</MudText>
+                    <MudText Typo="Typo.h6">$63.90</MudText>
+                </MudPaper>
+
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+</MudGrid>
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name="id")]
+    public int SessionId { get; set; }
+
+    private M.Room? SelectedRoom { get; set; }
+    private M.Movie? SelectedMovie { get; set; }
+    private List<M.Room>? RoomList { get; set; }
+    private List<M.Movie>? MovieList { get; set; }
+    private List<M.Item>? ItemList { get; set; }
+    private M.Session Session { get; set; } = new();
+    private List<M.SessionDetail> SessionDetails { get; set; } = new();
+
+
+    protected override void OnInitialized()
+    {
+        Session.CreatedAt = DateTime.Now;
+
+        base.OnInitialized();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender)
+        {
+            try
+            {
+                await Loading.ShowAsync();
+                await Task.WhenAll(GetRoomList(), GetMovieList(), GetItemList());
+                await GetData();
+                await InvokeAsync(StateHasChanged);
+            }
+            catch(Exception ex)
+            {
+                await MessageDialogService.ShowError("SessionRender.2121", ex.Message);
+            }
+            finally
+            {
+                await Loading.HideAsync();
+            }
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task GetRoomList()
+    {
+        var param = new M.VenueParam() { VenueId = AppStates.CurrentVenue.Id };
+        RoomList = await RoomAPI.GetAllAsync(param);
+    }
+
+    private async Task GetMovieList()
+    {
+        var param = new M.VenueParam() { VenueId = AppStates.CurrentVenue.Id };
+        MovieList = await MovieAPI.GetAllAsync(param);
+    }
+
+    private async Task GetItemList()
+    {
+        var param = new M.VenueParam() { VenueId = AppStates.CurrentVenue.Id };
+        ItemList = await ItemAPI.GetAllAsync(param);
+    }
+
+    private async Task GetData()
+    {
+        if(SessionId > 0)
+        {
+            var param = new M.IdParam() { VenueId = AppStates.CurrentVenue.Id, Id = SessionId };
+            Session = await SessionAPI.GetByIdAsync(param) ?? new();
+        }
+    }
+
+    private async Task OnChangeSelectedRoom(M.Room? room)
+    {
+        SelectedRoom = room;
+        Session.RoomId = SelectedRoom?.Id ?? 0;
+        CalculateSessionBaseTotal();
+    }
+
+    private async Task OnChangeSelectedMovie(M.Movie movie)
+    {
+        SelectedMovie = movie;
+        Session.MovieId = SelectedMovie?.Id ?? 0;
+        CalculateSessionBaseTotal();
+    }
+
+    private void OnChangeDate(DateTime? date)
+    {
+        if (date.HasValue)
+            Session.CreatedAt = new DateTime(date.Value.Year, date.Value.Month, date.Value.Day, Session.CreatedAt.Hour, Session.CreatedAt.Minute, 0);
+    }
+
+    private void OnChangeTime(TimeSpan? time)
+    {
+        if (time.HasValue)
+            Session.CreatedAt = Session.CreatedAt.Date + time.Value;
+    }
+
+    private void CalculateSessionBaseTotal()
+    {
+        int hoursCharged = (int)Math.Ceiling((SelectedMovie?.DurationMinutes ?? 0) / 60m);
+        Session.RoomCharge = hoursCharged * SelectedRoom?.BaseHourlyRate ?? 0;
+        decimal total = Session.RoomCharge + Session.ExtraCharge;
+        if (SelectedMovie is not null)
+        {
+            Session.ExpectedEndAt = Session.CreatedAt.AddMinutes(SelectedMovie.DurationMinutes);
+        }
+        else
+        {
+            Session.ExpectedEndAt = DateTime.MinValue;
+        }
+        Session.Total = total;
+    }
+}

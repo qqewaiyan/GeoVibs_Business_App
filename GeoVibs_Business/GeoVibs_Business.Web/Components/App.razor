@@ -46,9 +46,11 @@
             height: 100vh;
             z-index: 1999;
             background: #1e1e1e5c;
+            display :  none;
         }
 
         .app-loading {
+            display : none;
             position: fixed;
             top: 50%;
             left: 50%;
@@ -60,8 +62,12 @@
                 display: block;
             }
 
+        .backdrop.show-loading {
+            display :block;
+        }
+
         .backdrop,
-        .app-loading {
+        .show-loading {
             display: none;
         }
 

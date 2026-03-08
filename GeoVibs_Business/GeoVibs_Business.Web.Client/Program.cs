@@ -20,6 +20,8 @@ builder.Services.AddScoped<RoomAPI>();
 builder.Services.AddScoped<MovieAPI>();
 builder.Services.AddScoped<UserAPI>();
 builder.Services.AddScoped<UserLevelAPI>();
+builder.Services.AddScoped<ItemAPI>();
+builder.Services.AddScoped<SessionAPI>();
 
 builder.Services.AddScoped<ILoadingService, LoadingService>();
 builder.Services.AddMudServices();

@@ -100,7 +100,16 @@
 
                             <MudItem Class="pt-0" xs="6">
                                 <MudText Typo="Typo.caption">Expected End</MudText>
-                                <MudText>@Session.ExpectedEndAt</MudText>
+                                <MudText>
+                                    @if (Session.ExpectedEndAt != DateTime.MinValue)
+                                    {
+                                        @Session.ExpectedEndAt
+                                    }
+                                    else
+                                    {
+                                        @("---")
+                                    }
+                                </MudText>
                             </MudItem>
 
                             <MudItem xs="12" Class="mt-2 pt-0">
@@ -150,30 +159,41 @@
                     Quick Add
                 </MudText>
 
-                <MudGrid Spacing="2">
+                @if(ItemList is not null)
+                {
+                    <MudGrid Spacing="2">
 
-                    <MudItem xs="4">
-                        <MudButton Variant="Variant.Outlined" FullWidth="true">
-                            Popcorn<br />
-                            <MudChip T="string" Color="Color.Warning" Size="Size.Small">$8.99</MudChip>
-                        </MudButton>
-                    </MudItem>
+                        @foreach (var item in ItemList)
+                        {
+                            <MudItem xs="6" sm="4" md="3">
 
-                    <MudItem xs="4">
-                        <MudButton Variant="Variant.Outlined" FullWidth="true">
-                            Coca-Cola<br />
-                            <MudChip T="string" Color="@Color.Info" Size="Size.Small">$4.99</MudChip>
-                        </MudButton>
-                    </MudItem>
+                                <MudButton Variant="Variant.Outlined"
+                                           FullWidth="true"
+                                           Class="pa-4"
+                                           OnClick="@(() => AddToSession(item))">
 
-                    <MudItem xs="4">
-                        <MudButton Variant="Variant.Outlined" FullWidth="true">
-                            Nachos<br />
-                            <MudChip T="string" Color="Color.Error" Size="Size.Small">$12.99</MudChip>
-                        </MudButton>
-                    </MudItem>
+                                    <MudStack AlignItems="AlignItems.Center" Spacing="1">
 
-                </MudGrid>
+                                        <MudText Typo="Typo.subtitle1">
+                                            @item.Name
+                                        </MudText>
+
+                                        <MudChip T="string"
+                                                 Color="Color.Primary"
+                                                 Size="Size.Small">
+                                            $@item.Price
+                                        </MudChip>
+
+                                    </MudStack>
+
+                                </MudButton>
+
+                            </MudItem>
+                        }
+
+                    </MudGrid>
+                }
+
 
 
                 <!-- ITEMS TABLE -->
@@ -188,7 +208,6 @@
                     </HeaderContent>
 
                     <RowTemplate>
-
                         <MudTd>@context.Name</MudTd>
 
                         <MudTd>
@@ -196,15 +215,21 @@
                         </MudTd>
 
                         <MudTd>
+                            <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
 
-                            <MudIconButton Icon="@Icons.Material.Filled.Remove"
-                                           Size="Size.Small" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Remove"
+                                               Size="Size.Small"
+                                               OnClick="@(() => DecreaseQty(context))" />
 
-                            @context.Qty
+                                <MudText Typo="Typo.body1" Class="mx-1">
+                                    @context.Qty
+                                </MudText>
 
-                            <MudIconButton Icon="@Icons.Material.Filled.Add"
-                                           Size="Size.Small" />
+                                <MudIconButton Icon="@Icons.Material.Filled.Add"
+                                               Size="Size.Small"
+                                               OnClick="@(() => IncreaseQty(context))" />
 
+                            </MudStack>
                         </MudTd>
 
                         <MudTd>
@@ -213,10 +238,26 @@
 
                         <MudTd>
                             <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                           Color="Color.Error" />
+                                           Color="Color.Error"
+                                           OnClick="@(() => RemoveItem(context))" />
                         </MudTd>
-
                     </RowTemplate>
+
+                    <NoRecordsContent>
+                        <MudStack AlignItems="AlignItems.Center" Spacing="1" Class="pa-6">
+                            <MudIcon Icon="@Icons.Material.Filled.ShoppingCart"
+                                     Size="Size.Large"
+                                     Color="Color.Secondary" />
+
+                            <MudText Typo="Typo.subtitle1">
+                                No items added yet
+                            </MudText>
+
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                Click quick add buttons above
+                            </MudText>
+                        </MudStack>
+                    </NoRecordsContent>
 
                 </MudTable>
 
@@ -343,4 +384,41 @@
         }
         Session.Total = total;
     }
+
+    private void DecreaseQty(M.SessionDetail detail)
+    {
+        if (detail.Qty > 1)
+        {
+            detail.Qty--;   
+        }
+    }
+
+    private void IncreaseQty(M.SessionDetail detail)
+    {
+        detail.Qty++;
+    }
+
+    private void AddToSession(M.Item item)
+    {
+        var existing = SessionDetails.FirstOrDefault(x => x.Name == item.Name);
+
+        if (existing != null)
+        {
+            existing.Qty++;
+        }
+        else
+        {
+            SessionDetails.Add(new M.SessionDetail
+            {
+                Name = item.Name,
+                UnitPrice = item.Price,
+                Qty = 1
+            });
+        }
+    }
+
+    private void RemoveItem(M.SessionDetail detail)
+    {
+        SessionDetails.Remove(detail);
+    }   
 }

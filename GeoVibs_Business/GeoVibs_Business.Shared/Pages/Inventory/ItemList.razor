@@ -1,0 +1,169 @@
+﻿@page "/inventory"
+
+<MudStack Row="true" AlignItems="AlignItems.Center" Class="pt-3 mb-3" Justify="Justify.SpaceBetween">
+    <div>
+        <MudText Typo="Typo.h5" Class="page-title">
+            Items
+        </MudText>
+    </div>
+
+    <MudButton Variant="Variant.Filled" OnClick="() => OpenDialog(null)"
+               StartIcon="@Icons.Material.Filled.Add"
+               Class="add-movie-btn py-2 px-4 core-bg-color text-white">
+        <MudText>Add Item</MudText>
+    </MudButton>
+</MudStack>
+
+
+<style>
+    .page-title {
+        font-weight: 700; /* matches font-bold */
+    }
+
+    .add-movie-btn {
+        height: 40px;
+    }
+
+    .standard_Btn {
+        min-height: 40px;
+        min-width: 40px;
+    }
+</style>
+
+<MudTable Items="@Elements" Hover="true" Filter="new Func<M.Item, bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudSpacer></MudSpacer>
+        <MudTextField @bind-Value="searchText" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Title *</MudTh>
+        <MudTh>Type</MudTh>
+        <MudTh Style="text-align : right">Price</MudTh>
+        <MudTh>Active</MudTh>
+        <MudTh Style="text-align : right">Action</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Name">@context.Type</MudTd>
+        <MudTd Style="text-align : right" DataLabel="Price">@context.Price.ToString(@UltilityAssets.DecimalFormat)</MudTd>
+        <MudTd DataLabel="InActive">@(!context.InActive)</MudTd>
+        <MudTd Style="text-align : right">
+            <div class="flex item-center">
+                <button class="standard_Btn" @onclick="() => EditItem(context)">
+                    <MudIcon Icon="@Icons.Material.Outlined.Edit"></MudIcon>
+                </button>
+                <button class="standard_Btn" @onclick="() => DeleteItem(context)">
+                    <MudIcon Color="Color.Error" Icon="@Icons.Material.Outlined.Delete"></MudIcon>
+                </button>
+            </div>
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+
+@code {
+
+    private IEnumerable<M.Item>? Elements = new List<M.Item>();
+    private string searchText { get; set; } = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await Loading.ShowAsync();
+                var param = new M.VenueParam() { VenueId = AppStates.CurrentVenue.Id };
+                Elements = await ItemAPI.GetAllAsync(param);
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+                await MessageDialogService.ShowError("Item.5151", ex.Message);
+            }
+            finally
+            {
+                await Loading.HideAsync();
+            }
+        }
+    }
+
+
+
+    private bool FilterFunc1(M.Item element) => FilterFunc(element, searchText);
+
+    private bool FilterFunc(M.Item element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private async Task EditItem(M.Item room)
+    {
+        await OpenDialog(room.Id);
+    }
+
+
+    private async Task DeleteItem(M.Item room)
+    {
+        try
+        {
+
+            await Loading.ShowAsync();
+            var param = new M.IdParam() { Id = room.Id, VenueId = room.VenueId };
+            await ItemAPI.DeleteAsync(param);
+            await RefreshData();
+        }
+        catch (Exception ex)
+        {
+            await MessageDialogService.ShowError("Item.1415", ex.Message);
+        }
+        finally
+        {
+            await Loading.HideAsync();
+        }
+    }
+    private readonly DialogOptions _maxWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+    private async Task OpenDialog(int? roomId)
+    {
+        try
+        {
+            var parameters = new DialogParameters<ItemEntry>
+            {
+                { x => x.ItemId , roomId},
+            };
+            var dialog = await DialogService.ShowAsync<ItemEntry>(null, parameters);
+
+            var result = await dialog.Result;
+
+            if (result is not null && !result.Canceled)
+            {
+                await Loading.ShowAsync();
+                var room = (M.Item)result.Data!;
+                await ItemAPI.SaveAsync(room);
+                await RefreshData();
+            }
+        }
+        catch (Exception ex)
+        {
+            await MessageDialogService.ShowError("Item.2121", ex.Message);
+        }
+        finally
+        {
+            await Loading.HideAsync();
+        }
+    }
+
+    private async Task RefreshData()
+    {
+        Elements = await ItemAPI.GetAllAsync(new M.VenueParam { VenueId = 4 });
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

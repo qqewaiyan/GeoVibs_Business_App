@@ -9,6 +9,7 @@ namespace GeoVibs_Business.Shared.StaticAssets
         public const string RoomList = "/rooms";
         public const string RoomEntry = "/roomentry";
         public const string MovieList = "/movies";
+        public const string Inventory = "/inventory";
         public const string SessionList = "/sessions";
         public const string UserAccounts = "/useraccounts";
         public const string UserPermission = "/userpermission";
